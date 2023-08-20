@@ -1,97 +1,93 @@
+require_relative 'game_class'
+require 'yaml'
 
-class Game
-  def initialize
-    @guessed_arr = []
-    @guesses_left = 10
-  end
-
-  
-
-  def play
-    word = generate_word
-    loop do
-      turn = play_turn(word)
-      if turn
-        puts 'You win!'
-        puts word
-        exit
+def save_name
+  loop do
+    puts 'Name your save: '
+    name = gets.chomp
+    if File.exists?("saves/#{name}.yaml")
+      choice = nil
+      puts 'Save already exists. Would you like to overwrite it? (y/n)'
+      loop do
+      choice = gets.chomp
+      break if ['y', 'n'].include? choice
+      puts 'Invalid choice. Select "y" or "n".'
       end
-      break if @guesses_left == 0
-    end
-    puts 'Out of turns. The word was:'
-    puts word
-  end
 
-  def generate_word
-    f = File.read('google-10000-english-no-swears.txt').split
-    # keep randomly selecting until a word between 5 and 12 char. long
-    word = nil
-    loop do
-      word = f.sample
-      break if word.length > 4 && word.length < 13
-    end
-    word
-  end
-
-  def play_turn(word)
-    display_word(word)
-    puts "Incorrect guesses left: #{@guesses_left}"
-    guess = nil
-    loop do
-      puts 'Guess a letter:'
-      guess = gets.chomp.downcase
-      if guess.length == 1 && guess.match?(/[[:alpha:]]/)
-        if @guessed_arr.include?(guess)
-          puts 'Letter already guessed'
-          next
-        else
-          break
-        end
+      if choice == 'y'
+        return name
       else
-      puts 'Only single characters allowed'
+        next
       end
-    end
-    unless check_if_correct(word, guess)
-      @guesses_left -= 1
-    end
-    @guessed_arr.push(guess)
-    
-    check_for_win(word)
-    
-  end
-
-  def display_word(word)
-    arr = word.split('')
-    print_arr = []
-    arr.each do |char|
-      if @guessed_arr.include?(char)
-        print_arr.push(char)
-      else
-        print_arr.push('_ ')
-      end
-    end
-    puts print_arr.join('')
-    puts "Letters guessed: #{@guessed_arr}"
-  end
-
-  def check_for_win(word)
-    arr = word.split('')
-    arr.each do |char|
-      unless @guessed_arr.include?(char)
-        return false
-      end
-    end
-    true
-  end
-
-  def check_if_correct(word, guess)
-    if word.split('').include?(guess)
-      true
     else
-      false
+      return name
     end
   end
 end
 
-game = Game.new
-game.play
+def choose_name
+  # TODO:
+  # better way to show the files
+  loop do
+    puts 'Choose a saved game: '
+    puts Dir.glob('saves/*')
+    choice = gets.chomp
+    if File.exists?("saves/#{choice}.yaml")
+      return choice
+    else
+      puts "Invalid name. Save doesn't exist"
+      next
+    end
+  end
+end
+    
+
+def save_game(current_game)
+  serialized_object = YAML.dump(current_game)
+  file = File.open("saves/#{save_name}.yaml", "w") { |file| file.write serialized_object }
+end
+
+def load_game
+  save = File.open("saves/#{choose_name}.yaml")
+  deserialized_object = YAML.unsafe_load(save)
+  save.close
+  puts 'Game loaded'
+  deserialized_object
+end
+
+
+choice = nil
+puts 'Welcome to hangman, would you like to (1) start a new game or (2) load a saved game?'
+loop do
+  choice = gets.chomp
+  break if ['1', '2'].include? choice
+
+  puts 'Please select 1 or 2'
+end
+game = choice == '1' ? Game.new : load_game
+
+until game.out_of_guesses? do
+  # display the word in hidden/guessed state
+  game.display_word
+  # display incorrect guesses
+  puts "Incorrect guesses left: #{game.guesses_left}"
+  # ask for input, check if the guess was correct
+  input = game.register_input
+  # check for save - save the game
+  if input == 'save'
+    save_game(game)
+    puts 'Game saved.'
+    exit
+  end
+  # check for win
+  if game.check_for_win
+    puts 'Congratulations! You win!'
+    puts "The word was: #{game.word}"
+    exit
+  end
+  # display the feedback and already guessed letters
+  puts "Letters guessed: #{game.guessed_arr}"
+  # repeat
+end
+puts "Out of turns. The word was: #{game.word}"
+

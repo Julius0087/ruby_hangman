@@ -1,0 +1,10 @@
+--- !ruby/object:Game
+guessed_arr:
+- e
+- r
+- t
+- a
+- o
+- p
+guesses_left: 7
+word: headset
