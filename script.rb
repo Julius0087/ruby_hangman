@@ -28,9 +28,17 @@ end
 def choose_name
   # TODO:
   # better way to show the files
+  if Dir.empty?('saves')
+    puts 'No save file found.'
+    exit
+  end
+
   loop do
     puts 'Choose a saved game: '
-    puts Dir.glob('saves/*')
+    files = Dir.entries("saves").select { |f| File.file? File.join("saves", f) }
+    files.each { |file| file.slice!('.yaml') }
+    puts files
+
     choice = gets.chomp
     if File.exists?("saves/#{choice}.yaml")
       return choice
@@ -85,9 +93,9 @@ until game.out_of_guesses? do
     puts "The word was: #{game.word}"
     exit
   end
-  # display the feedback and already guessed letters
-  puts "Letters guessed: #{game.guessed_arr}"
   # repeat
 end
 puts "Out of turns. The word was: #{game.word}"
+
+# DONE:
 

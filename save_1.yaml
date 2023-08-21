@@ -1,8 +1,0 @@
---- !ruby/object:Game
-guessed_arr:
-- e
-- r
-- t
-- a
-guesses_left: 8
-word: dakota

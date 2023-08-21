@@ -33,6 +33,7 @@ class Game
   def register_input
     guess = nil
     loop do
+      puts "Letters guessed: #{@guessed_arr}"
       puts 'Guess a letter, or type "save" to save the game:'
       guess = gets.chomp.downcase
       return 'save' if guess == 'save'

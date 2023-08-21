@@ -1,9 +1,0 @@
---- !ruby/object:Game
-guessed_arr:
-- e
-- r
-- g
-- f
-- a
-guesses_left: 6
-word: hands
